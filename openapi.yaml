@@ -1,0 +1,170 @@
+openapi: 3.0.3
+info:
+  title: Demo API
+  description: Cursor-paginated list API with metadata and rate-limit headers.
+  version: 1.0.0
+  contact:
+    name: API Team
+    email: api@example.com
+
+tags:
+  - name: Items
+    description: Cursor-paginated collections
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+paths:
+  /api/v1/items:
+    get:
+      operationId: listItems
+      summary: List items (cursor pagination)
+      description: Returns a page of items using opaque cursor pagination. Use `meta.next_cursor` for subsequent pages until it is null.
+      tags:
+        - Items
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          description: Opaque cursor from a previous response `meta.next_cursor`. Omit for the first page.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Page size (default 20).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Paginated item list
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum requests allowed in the current window.
+              schema:
+                type: integer
+                example: 100
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window.
+              schema:
+                type: integer
+                example: 99
+            X-RateLimit-Reset:
+              description: Unix epoch time (seconds) when the rate limit window resets.
+              schema:
+                type: integer
+                example: 1760830800
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedItemListResponse"
+        "400":
+          description: Invalid query parameters (e.g. bad limit or cursor)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              schema:
+                type: integer
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    ListItem:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          example: item-001
+        name:
+          type: string
+          example: Item 1
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-01-01T00:00:00.000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-01-01T01:00:00.000Z"
+
+    PaginationMeta:
+      type: object
+      required:
+        - next_cursor
+        - total_count
+        - limit
+      properties:
+        next_cursor:
+          type: string
+          nullable: true
+          description: Cursor for the next page, or null when there are no more results.
+          example: aXRlbS0wMDI
+        total_count:
+          type: integer
+          minimum: 0
+          description: Total number of items in the collection.
+          example: 50
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Effective page size for this response.
+          example: 20
+
+    PaginatedItemListResponse:
+      type: object
+      required:
+        - success
+        - data
+        - meta
+      properties:
+        success:
+          type: boolean
+          enum:
+            - true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ListItem"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          enum:
+            - false
+        message:
+          type: string

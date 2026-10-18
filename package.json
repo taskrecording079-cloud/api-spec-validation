@@ -8,7 +8,9 @@
     "postbuild": "if [ \"$BUILD_NODE_ENV\" = \"development\" ]; then echo 'Running postbuild for development'; cp -r logs dist/; else echo 'Skipping postbuild'; fi",
     "start": "NODE_ENV=production  node dist/server.js",
     "dev": "ts-node-dev --files src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint:openapi": "spectral lint openapi.yaml",
+    "check:api-contract": "npm run lint:openapi"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +22,8 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "@stoplight/spectral-cli": "^6.15.0",
+    "@stoplight/spectral-rulesets": "^1.22.0",
     "@types/express": "^5.0.0",
     "@types/node": "^22.7.5",
     "concurrently": "^9.0.1",

@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express"
-import { config } from "../config"
 import logger from "../utils/logger"
 
 export const tokenAuthHandler = (
@@ -11,11 +10,6 @@ export const tokenAuthHandler = (
   const path = req.baseUrl
 
   let expectedSecret
-  if (path === "/health") {
-    expectedSecret = config.healthSecret
-  } else if (path === "/logs") {
-    expectedSecret = config.logSecret
-  }
 
   const requestToken = authHeader?.split(" ")[1]
 
