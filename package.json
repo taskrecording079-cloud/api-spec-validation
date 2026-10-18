@@ -1,0 +1,30 @@
+{
+  "name": "typescript-nodejs-express",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/server.ts",
+  "scripts": {
+    "build": "npx tsc",
+    "postbuild": "if [ \"$BUILD_NODE_ENV\" = \"development\" ]; then echo 'Running postbuild for development'; cp -r logs dist/; else echo 'Skipping postbuild'; fi",
+    "start": "NODE_ENV=production  node dist/server.js",
+    "dev": "ts-node-dev --files src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "list": "^2.0.19",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.7.5",
+    "concurrently": "^9.0.1",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.6.3"
+  }
+}
