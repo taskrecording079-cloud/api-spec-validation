@@ -1,0 +1,62 @@
+extends:
+  - spectral:oas
+
+rules:
+  pagination-meta-required-fields:
+    description: PaginationMeta must require next_cursor, total_count, and limit.
+    message: "PaginationMeta.required must include next_cursor, total_count, and limit"
+    severity: error
+    given: $.components.schemas.PaginationMeta
+    then:
+      field: required
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          minItems: 3
+          allOf:
+            - contains:
+                const: next_cursor
+            - contains:
+                const: total_count
+            - contains:
+                const: limit
+
+  pagination-next-cursor-nullable:
+    description: next_cursor must be nullable for last-page semantics.
+    message: "PaginationMeta.properties.next_cursor must set nullable: true"
+    severity: error
+    given: $.components.schemas.PaginationMeta.properties.next_cursor
+    then:
+      field: nullable
+      function: truthy
+
+  list-item-iso-timestamps:
+    description: List item timestamps must use OpenAPI date-time (ISO 8601).
+    message: "{{property}} must use format: date-time"
+    severity: error
+    given:
+      - $.components.schemas.ListItem.properties.created_at
+      - $.components.schemas.ListItem.properties.updated_at
+    then:
+      field: format
+      function: enumeration
+      functionOptions:
+        values:
+          - date-time
+
+  list-rate-limit-headers:
+    description: List endpoint 200 response must document standard rate-limit headers.
+    message: "GET /api/v1/items 200 must define X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset"
+    severity: error
+    given: $.paths['/api/v1/items'].get.responses['200']
+    then:
+      field: headers
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required:
+            - X-RateLimit-Limit
+            - X-RateLimit-Remaining
+            - X-RateLimit-Reset
